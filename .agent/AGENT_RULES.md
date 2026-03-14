@@ -1,0 +1,1 @@
+/home/ubuntu/agentmanager/.agent/AGENT_RULES.md
