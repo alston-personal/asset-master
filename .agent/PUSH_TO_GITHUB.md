@@ -1,1 +1,0 @@
-/home/ubuntu/agentmanager/.agent/PUSH_TO_GITHUB.md

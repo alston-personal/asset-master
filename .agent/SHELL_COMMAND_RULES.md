@@ -1,1 +1,0 @@
-/home/ubuntu/agentmanager/.agent/SHELL_COMMAND_RULES.md

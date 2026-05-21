@@ -1,1 +1,0 @@
-/home/ubuntu/agentmanager/.agent/CROSS_PLATFORM_GUIDE.md
