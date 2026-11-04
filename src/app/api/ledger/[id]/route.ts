@@ -3,10 +3,10 @@ import { prisma } from '@/lib/db';
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     const data = await request.json();
 
     const transaction = await prisma.transaction.update({
@@ -37,10 +37,10 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    const id = params.id;
+    const { id } = await params;
     await prisma.transaction.delete({
       where: { id },
     });

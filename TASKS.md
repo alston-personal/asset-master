@@ -11,6 +11,6 @@
 - [x] Add Bank Balance Tracking (TWD/USD/JPY/Crypto) <!-- id: 12 -->
 
 ## 📌 Backlog
-- [ ] Phase 5: Dashboard Visualization Details (Charts/Trends) <!-- id: 5 -->
+- [x] Phase 5: Dashboard Visualization Details (Charts/Trends) <!-- id: 5 -->
 - [ ] Phase 6: Localization & Currency Conversion Logic <!-- id: 6 -->
 - [ ] Phase 7: Testing & Validation <!-- id: 7 -->

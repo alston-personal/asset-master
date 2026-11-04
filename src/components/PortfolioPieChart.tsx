@@ -1,6 +1,6 @@
 'use client';
 
-import { Chart as ChartJS, ArcElement, Tooltip, Legend, PieController, Title, TooltipPosition } from 'chart.js';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, PieController, Title } from 'chart.js';
 import { Pie } from 'react-chartjs-2';
 import { useMemo } from 'react';
 
@@ -65,7 +65,7 @@ export function PortfolioPieChart({ data, valueCurrency = 'USD' }: PortfolioPieC
       cutout: '55%',
       plugins: {
         legend: {
-          position: 'bottom' as TooltipPosition,
+          position: 'bottom' as const,
           labels: {
             color: 'rgba(255, 255, 255, 0.7)',
             font: { size: 12 },
@@ -90,13 +90,13 @@ export function PortfolioPieChart({ data, valueCurrency = 'USD' }: PortfolioPieC
           display: total > 0,
           text: total > 0 ? `${total.toLocaleString(undefined, { maximumFractionDigits: 0 })} ${valueCurrency}` : '',
           color: 'rgba(255, 255, 255, 0.9)',
-          font: { size: 20, weight: 'bold' },
+          font: { size: 20, weight: 'bold' as const },
           padding: { top: 8, bottom: 8 },
         },
         tooltip: {
           backgroundColor: 'rgba(0, 0, 0, 0.85)',
           padding: 14,
-          titleFont: { size: 14, weight: '600' },
+          titleFont: { size: 14, weight: 'bold' as const },
           bodyFont: { size: 13 },
           displayColors: true,
           cornerRadius: 8,
