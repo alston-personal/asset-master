@@ -12,5 +12,5 @@
 
 ## 📌 Backlog
 - [x] Phase 5: Dashboard Visualization Details (Charts/Trends) <!-- id: 5 -->
-- [ ] Phase 6: Localization & Currency Conversion Logic <!-- id: 6 -->
-- [ ] Phase 7: Testing & Validation <!-- id: 7 -->
+- [x] Phase 6: Localization & Currency Conversion Logic <!-- id: 6 -->
+- [x] Phase 7: Testing & Validation <!-- id: 7 -->

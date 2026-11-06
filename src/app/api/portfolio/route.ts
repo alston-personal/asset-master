@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/db';
-import { getStockQuotes, getCryptoQuotes, getExchangeRates } from '@/lib/finance';
+import { getStockQuotes, getCryptoQuotes } from '@/lib/finance';
+import { convertCurrency, getRateFromUSD } from '@/lib/currency';
+import { BaseCurrency } from '@/types/ledger';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    const { searchParams } = new URL(request.url);
+    const targetBaseCurrency = (searchParams.get('baseCurrency') || 'USD') as BaseCurrency;
+
     const transactions = await prisma.transaction.findMany();
 
     // Group transactions by symbol
@@ -53,39 +58,44 @@ export async function GET() {
       currentPrices = { ...currentPrices, ...Object.fromEntries(cryptoQuotes) };
     }
 
-    // Fetch exchange rates if needed
-    let twdRate = 1 / 32; // Fallback
-    if (activeSymbols.some(s => portfolio[s].currency === 'TWD')) {
-      const rates = await getExchangeRates(['TWDUSD=X']);
-      twdRate = rates.get('TWDUSD=X') || twdRate;
-    }
+    // Final calculation with currency conversion
+    const results = await Promise.all(
+      activeSymbols.map(async (symbol) => {
+        const p = portfolio[symbol];
+        const current = currentPrices[symbol];
+        const price = current?.price || 0;
+        const value = p.totalQuantity * price;
+        const itemCurrency = p.currency || (symbol.endsWith('.TW') ? 'TWD' : symbol.endsWith('.T') ? 'JPY' : symbol.includes('/') ? 'USDT' : 'USD');
 
-    // Final calculation
-    const results = activeSymbols.map((symbol) => {
-      const p = portfolio[symbol];
-      const current = currentPrices[symbol];
-      const price = current?.price || 0;
-      const value = p.totalQuantity * price;
+        // Convert to USD first
+        const usdConversion = await convertCurrency(value, itemCurrency, 'USD');
+        const costUsdConversion = await convertCurrency(p.totalCost, itemCurrency, 'USD');
 
-      // Normalize to USD for total calculation
-      let valueUSD = value;
-      if (p.currency === 'TWD') valueUSD = value * twdRate;
-      // USDT is roughly 1:1 with USD for dashboard purposes
+        // Convert to requested base currency
+        const baseConversion = await convertCurrency(value, itemCurrency, targetBaseCurrency);
+        const costBaseConversion = await convertCurrency(p.totalCost, itemCurrency, targetBaseCurrency);
 
-      const avgCost = p.totalQuantity > 0 ? (p.totalCost / p.totalQuantity) : 0;
-      const gainLoss = value - p.totalCost;
-      const gainLossPercent = p.totalCost > 0 ? (gainLoss / p.totalCost) * 100 : 0;
+        const avgCost = p.totalQuantity > 0 ? (p.totalCost / p.totalQuantity) : 0;
+        const gainLoss = value - p.totalCost;
+        const gainLossPercent = p.totalCost > 0 ? (gainLoss / p.totalCost) * 100 : 0;
+        const unrealizedGainLossBase = baseConversion.convertedAmount - costBaseConversion.convertedAmount;
 
-      return {
-        ...p,
-        currentPrice: price,
-        currentValue: value,
-        currentValueUSD: valueUSD, // New field for normalized total
-        averageCost: avgCost,
-        unrealizedGainLoss: gainLoss,
-        unrealizedGainLossPercentage: gainLossPercent,
-      };
-    });
+        return {
+          ...p,
+          currency: itemCurrency,
+          currentPrice: price,
+          currentValue: value,
+          currentValueUSD: usdConversion.convertedAmount,
+          currentValueBase: baseConversion.convertedAmount,
+          baseCurrency: targetBaseCurrency,
+          exchangeRateToBase: baseConversion.exchangeRate,
+          averageCost: avgCost,
+          unrealizedGainLoss: gainLoss,
+          unrealizedGainLossBase: unrealizedGainLossBase,
+          unrealizedGainLossPercentage: gainLossPercent,
+        };
+      })
+    );
 
     return NextResponse.json(results);
   } catch (error) {

@@ -19,6 +19,12 @@ export async function POST() {
       create: { key: 'colorScheme', value: 'US' },
     });
 
+    await prisma.systemSetting.upsert({
+      where: { key: 'baseCurrency' },
+      update: {},
+      create: { key: 'baseCurrency', value: 'USD' },
+    });
+
     // 2. Initial Fee Rules (Standard Defaults)
     await prisma.feeRule.deleteMany({ where: { isSystem: true } });
 
