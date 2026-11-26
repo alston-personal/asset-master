@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
 
 export default function SettingsPage() {
-  const { colorScheme, setColorScheme } = useSettings();
+  const { colorScheme, setColorScheme, baseCurrency, setBaseCurrency } = useSettings();
   const [feeRules, setFeeRules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -135,6 +135,22 @@ export default function SettingsPage() {
                 >
                   <option value="US">US (Green=Up, Red=Down)</option>
                   <option value="TW">TW (Red=Up, Green=Down)</option>
+                </select>
+              </div>
+
+              <div className="flex items-center justify-between p-4 bg-white/5 rounded-2xl border border-white/10">
+                <div>
+                  <h3 className="font-semibold text-white">Base Display Currency</h3>
+                  <p className="text-xs text-muted-foreground">Normalize all portfolio assets to this currency.</p>
+                </div>
+                <select
+                  className="bg-black/40 border border-white/10 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  value={baseCurrency}
+                  onChange={(e) => setBaseCurrency(e.target.value as any)}
+                >
+                  <option value="USD">USD ($)</option>
+                  <option value="TWD">TWD (NT$)</option>
+                  <option value="JPY">JPY (¥)</option>
                 </select>
               </div>
             </div>

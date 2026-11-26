@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { PriceCard } from '@/components/PriceCard';
-import { LayoutDashboard, Wallet, PieChart, History, RefreshCw, TrendingUp, TrendingDown, Settings as SettingsIcon } from 'lucide-react';
+import { LayoutDashboard, Wallet, PieChart, History, RefreshCw, TrendingUp, TrendingDown, LineChart, Settings as SettingsIcon } from 'lucide-react';
 import { PortfolioPieChart } from '@/components/PortfolioPieChart';
+import { PortfolioTrendChart, TrendPoint } from '@/components/PortfolioTrendChart';
 import { formatCurrency, getMarketFromSymbol } from '@/lib/utils';
 import Link from 'next/link';
 import { useSettings } from '@/context/SettingsContext';
@@ -17,6 +18,8 @@ export default function Home() {
   // ... skipping to render part, wait, I'll do a larger block to be safe
   const [portfolio, setPortfolio] = useState<any[]>([]);
   const [bankAccounts, setBankAccounts] = useState<any[]>([]);
+  const [trendData, setTrendData] = useState<TrendPoint[]>([]);
+  const [loadingTrend, setLoadingTrend] = useState(true);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filterType, setFilterType] = useState('ALL');
@@ -25,27 +28,32 @@ export default function Home() {
   async function fetchData() {
     try {
       setRefreshing(true);
-      const [priceRes, portfolioRes, bankAccountsRes] = await Promise.all([
+      const [priceRes, portfolioRes, bankAccountsRes, trendRes] = await Promise.all([
         fetch(`/api/prices?symbols=${TRACKED_SYMBOLS.join(',')}`),
         fetch('/api/portfolio'),
-        fetch('/api/bank-accounts')
+        fetch('/api/bank-accounts'),
+        fetch('/api/portfolio/trend')
       ]);
 
       const priceData = priceRes.ok ? await priceRes.json() : {};
       const portfolioData = portfolioRes.ok ? await portfolioRes.json() : [];
       const bankAccountsData = bankAccountsRes.ok ? await bankAccountsRes.json() : [];
+      const trendJson = trendRes.ok ? await trendRes.json() : { data: [] };
 
       setQuotes(priceData);
       setPortfolio(portfolioData);
       setBankAccounts(bankAccountsData);
+      setTrendData(trendJson.data || []);
     } catch (error) {
       console.error('Failed to fetch data:', error);
       setQuotes({});
       setPortfolio([]);
       setBankAccounts([]);
+      setTrendData([]);
     } finally {
       setLoading(false);
       setRefreshing(false);
+      setLoadingTrend(false);
     }
   }
 
@@ -225,6 +233,20 @@ export default function Home() {
                 </tbody>
               </table>
             </div>
+          </div>
+        </section>
+
+        {/* Portfolio Trend Chart Section */}
+        <section className="mt-12">
+          <div className="glass p-8 rounded-3xl min-h-[400px]">
+            <div className="flex flex-col sm:flex-row justify-between sm:items-center mb-6 gap-2">
+              <h2 className="text-xl font-bold flex items-center gap-2">
+                <LineChart size={20} className="text-emerald-500" />
+                Portfolio Performance &amp; Gain/Loss Trend
+              </h2>
+              <span className="text-xs text-muted-foreground">Historical cumulative valuation &amp; unrealized P/L over time</span>
+            </div>
+            <PortfolioTrendChart data={trendData} loading={loadingTrend} />
           </div>
         </section>
 

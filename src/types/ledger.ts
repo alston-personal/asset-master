@@ -10,7 +10,37 @@ export type TransactionType =
   | 'DEPOSIT'        // 入金 (入現金到帳戶)
   | 'WITHDRAW';      // 出金 (提領現金)
 
-export type Currency = 'USD' | 'TWD' | 'JPY' | 'USDT' | 'BTC' | 'ETH';
+export type Currency = 'USD' | 'TWD' | 'JPY' | 'USDT' | 'BTC' | 'ETH' | 'BNB' | 'SOL' | 'OTHER';
+
+export type BaseCurrency = 'USD' | 'TWD' | 'JPY';
+
+export type Localization = {
+  baseCurrency: BaseCurrency;
+  colorScheme: 'US' | 'TW';
+  priceUpdateInterval: number; // seconds
+};
+
+/**
+ * Cached exchange rates keyed by pair (e.g., "TWDUSD=X")
+ * TTL: 5 minutes
+ */
+export interface ExchangeRateCache {
+  rates: Map<string, { rate: number; fetchedAt: number }>;
+  get(pair: string): number | null;
+  set(pair: string, rate: number): void;
+  invalidate(pair: string): void;
+  clear(): void;
+  isStale(pair: string, ttlMs?: number): boolean;
+}
+
+export interface CurrencyConversionResult {
+  originalAmount: number;
+  convertedAmount: number;
+  fromCurrency: string;
+  toCurrency: string;
+  exchangeRate: number;
+  fallback: boolean;
+}
 
 export interface LedgerEntry {
   id: string;

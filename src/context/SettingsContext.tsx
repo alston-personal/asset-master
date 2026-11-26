@@ -1,12 +1,15 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { BaseCurrency } from '@/types/ledger';
 
 type ColorScheme = 'TW' | 'US';
 
 interface SettingsContextType {
   colorScheme: ColorScheme;
   setColorScheme: (scheme: ColorScheme) => void;
+  baseCurrency: BaseCurrency;
+  setBaseCurrency: (currency: BaseCurrency) => void;
   isLoading: boolean;
 }
 
@@ -14,6 +17,7 @@ const SettingsContext = createContext<SettingsContextType | undefined>(undefined
 
 export function SettingsProvider({ children }: { children: React.ReactNode }) {
   const [colorScheme, setColorSchemeState] = useState<ColorScheme>('US');
+  const [baseCurrency, setBaseCurrencyState] = useState<BaseCurrency>('USD');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -24,6 +28,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
           const data = await res.json();
           if (data.colorScheme) {
             setColorSchemeState(data.colorScheme as ColorScheme);
+          }
+          if (data.baseCurrency) {
+            setBaseCurrencyState(data.baseCurrency as BaseCurrency);
           }
         }
       } catch (error) {
@@ -48,8 +55,29 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
+  const setBaseCurrency = async (currency: BaseCurrency) => {
+    setBaseCurrencyState(currency);
+    try {
+      await fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'baseCurrency', value: currency }),
+      });
+    } catch (error) {
+      console.error('Failed to save base currency setting', error);
+    }
+  };
+
   return (
-    <SettingsContext.Provider value={{ colorScheme, setColorScheme, isLoading }}>
+    <SettingsContext.Provider
+      value={{
+        colorScheme,
+        setColorScheme,
+        baseCurrency,
+        setBaseCurrency,
+        isLoading,
+      }}
+    >
       {children}
     </SettingsContext.Provider>
   );
